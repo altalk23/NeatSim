@@ -10,5 +10,9 @@ class Size:
     def tuple(self):
         return (self.width, self.height)
 
+
     def __truediv__(self, other):
-        return Size(ceil(self.width / other.width), ceil(self.height / other.height))
+        return Size(self.width / other.width, self.height / other.height)
+
+    def ceil(self):
+        return Size(ceil(self.width), ceil(self.height))

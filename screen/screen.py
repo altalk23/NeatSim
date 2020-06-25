@@ -60,7 +60,7 @@ class Screen:
             tilesystem.setSize(Size(self.size.height, self.size.height))
         else:
             tilesystem.setSize(Size(self.size.width, self.size.width))
-        tilesystem.generateTiles(Size(15, 15))
+        tilesystem.generateTiles(Size(32, 32))
 
 
         # All sprites
@@ -76,8 +76,9 @@ class Screen:
                 if event.type == pg.QUIT:
                     running = False
 
-                if event.type == pg.K_i:
-                    tilesystem.zoomIn()
+                if event.type == pg.KEYDOWN:
+                    if event.key == pg.K_i:
+                        tilesystem.zoomIn()
 
             allsprites.update()
 
