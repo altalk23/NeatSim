@@ -11,6 +11,7 @@ class TileSystem:
     dy = 0
     dr = 0
     dz = 0
+    curve = lambda self, x: (x+1)**0.75
 
     '''
     Initializes the tile system
@@ -36,7 +37,8 @@ class TileSystem:
                 self.tiles.append(
                     BaseTile(
                         (randint(111, 143), 0, 0),
-                        Coordinate(x, y)
+                        Coordinate(x, y),
+                        self
                     )
                 )
         self.updateTiles()
@@ -44,31 +46,65 @@ class TileSystem:
     def updateTiles(self):
         self.tileSize = self.currentSize / self.systemSize
         for tile in self.tiles:
-            tile.setBoundingBox(
-                BoundingBox(
-                    Coordinate(
-                        tile.coordinate.x * self.tileSize.width,
-                        tile.coordinate.y * self.tileSize.height
-                    ),
-                    self.tileSize.ceil()
+            if tile.boundingBox is None:
+                tile.updateBoundingBox(
+                    BoundingBox(
+                        Coordinate(
+                            tile.coordinate.x * self.tileSize.width,
+                            tile.coordinate.y * self.tileSize.height
+                        ),
+                        self.tileSize.ceil()
+                    )
                 )
-            )
-
-
+            else:
+                boundingBox = tile.boundingBox
+                boundingBox.align(self.curve(self.dz), self.dx, self.dy)
+                tile.updateBoundingBox(
+                    boundingBox
+                )
 
 
     '''
     Zooms in
     '''
     def zoomIn(self):
-        curve = lambda x: self.windowSize.width/8/x
         if self.dz < 20:
+            pdz = self.curve(self.dz)
             self.dz += 1
-            self.dx += curve(self.dz)
-            self.dy += curve(self.dz)
-            self.currentSize = Size(
-                self.windowSize.width - 2 * curve(self.dz),
-                self.windowSize.height - 2 * curve(self.dz),
-            )
-            print(self.dz, self.dx, self.dy)
-            self.updateTiles()
+            self.changeZoom(pdz)
+
+    '''
+    Zooms out
+    '''
+    def zoomOut(self):
+        if self.dz > 0:
+            pdz = self.curve(self.dz)
+            self.dz -= 1
+            self.changeZoom(pdz)
+
+    def limitMove(self):
+        self.dx = max(min(self.dx, 0), - self.currentSize.width + self.windowSize.width)
+        self.dy = max(min(self.dy, 0), - self.currentSize.height + self.windowSize.height)
+
+    '''
+    Changes zoom
+    '''
+    def changeZoom(self, pdz):
+        dz = self.curve(self.dz)
+
+        self.dx -= self.windowSize.width * (dz - pdz) / 2
+        self.dy -= self.windowSize.height * (dz - pdz) / 2
+
+        self.currentSize = Size(
+            self.windowSize.width * dz,
+            self.windowSize.height * dz,
+        )
+
+        self.limitMove()
+        self.updateTiles()
+
+    def move(self, dx, dy):
+        self.dx += dx
+        self.dy += dy
+        self.limitMove()
+        self.updateTiles()

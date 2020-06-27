@@ -7,7 +7,7 @@ class Size:
         self.width = width
         self.height = height
 
-    def tuple(self):
+    def get(self):
         return (self.width, self.height)
 
 
@@ -16,3 +16,15 @@ class Size:
 
     def ceil(self):
         return Size(ceil(self.width), ceil(self.height))
+
+    def __eq__(self, other):
+        return self.get() == other.get()
+
+    def blank():
+        return Size(
+            0,
+            0
+        )
+
+    def __mul__(self, other):
+        return (self.width * other, self.height * other)

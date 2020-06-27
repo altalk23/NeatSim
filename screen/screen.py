@@ -3,9 +3,11 @@ import pygame as pg
 from utilities.colors import Colors
 from utilities.size import Size
 from screen.tile.tilesystem import TileSystem
+from screen.sim.simsystem import SimSystem
 
 
 class Screen:
+    down = None
 
     '''
     Screen initializer
@@ -32,7 +34,7 @@ class Screen:
 
         # Windowed
         else:
-            self.screen = pg.display.set_mode(size.tuple())
+            self.screen = pg.display.set_mode(size.get())
             self.size = size
 
 
@@ -49,7 +51,7 @@ class Screen:
         running = True
 
         # Background
-        background = pg.Surface(self.size.tuple())
+        background = pg.Surface(self.size.get())
         background = background.convert()
         background.fill(Colors.white)
 
@@ -62,10 +64,15 @@ class Screen:
             tilesystem.setSize(Size(self.size.width, self.size.width))
         tilesystem.generateTiles(Size(32, 32))
 
-
         # All sprites
         allsprites = pg.sprite.LayeredDirty(tilesystem.tiles)
         allsprites.clear(self.screen, background)
+
+        # Simsystem
+        simsystem = SimSystem(tilesystem, allsprites)
+        simsystem.generateSims(50)
+
+
 
 
         # Main loop
@@ -79,8 +86,23 @@ class Screen:
                 if event.type == pg.KEYDOWN:
                     if event.key == pg.K_i:
                         tilesystem.zoomIn()
+                        simsystem.changeZoom()
 
-            allsprites.update()
+                    if event.key == pg.K_o:
+                        tilesystem.zoomOut()
+                        simsystem.changeZoom()
+
+                if event.type == pg.MOUSEBUTTONDOWN:
+                    self.down = event.pos
+
+                if event.type == pg.MOUSEMOTION:
+                    if self.down is not None:
+                        tilesystem.move(event.pos[0] - self.down[0], event.pos[1] - self.down[1])
+                        simsystem.updateSims()
+                        self.down = event.pos
+
+                if event.type == pg.MOUSEBUTTONUP:
+                    self.down = None
 
             rect = allsprites.draw(self.screen)
             pg.display.update(rect)
