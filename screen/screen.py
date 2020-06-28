@@ -4,6 +4,7 @@ from utilities.colors import Colors
 from utilities.size import Size
 from screen.tile.tilesystem import TileSystem
 from screen.sim.simsystem import SimSystem
+from screen.tile.delta import Delta
 
 
 
@@ -51,12 +52,15 @@ class Screen:
     def start(self):
         running = True
 
+        # Delta
+        delta = Delta(self.size.height, self.size.height)
+
         # Background
         simSurface = pg.Surface(self.size.get(), pg.SRCALPHA)
         simSurface = simSurface.convert_alpha()
 
         # Tilesystem
-        tilesystem = TileSystem(self.screen)
+        tilesystem = TileSystem(self.screen, delta)
         tilesystem.setSize(self.size.height, self.size.height)
         tilesystem.generateTiles(100, 100)
 
@@ -74,7 +78,7 @@ class Screen:
 
         # Main loop
         while running:
-            self.clock.tick(self.framerate)
+            print(self.clock.tick(self.framerate))
 
             for event in pg.event.get():
                 if event.type == pg.QUIT:
@@ -82,21 +86,33 @@ class Screen:
 
                 if event.type == pg.MOUSEBUTTONDOWN:
                     #if not simsystem.selectSim(event.pos):
-                    #    self.down = event.pos
-                    tilesystem.randomColor()
-                    simGroup.update()
+                    #
+                    if event.button == 1:
+                        #tilesystem.randomColor()
+                        self.down = event.pos
+                    elif event.button == 4:
+                        delta.zoomOut()
+                        tilesystem.deltaChange()
+                        simsystem.deltaChange()
+                    elif event.button == 5:
+                        delta.zoomIn()
+                        tilesystem.deltaChange()
+                        simsystem.deltaChange()
                     pass
 
                 if event.type == pg.MOUSEMOTION:
-                    #if self.down is not None:
-                    #    tilesystem.move(event.pos[0] - self.down[0], event.pos[1] - self.down[1])
+                    if self.down is not None:
+                        delta.move(event.pos[0] - self.down[0], event.pos[1] - self.down[1])
+                        tilesystem.deltaChange()
+                        simsystem.deltaChange()
+                        self.down = event.pos
+                    #
+                    #    tilesystem.move()
                     #    simsystem.updateSims()
                     #    self.down = event.pos
-                    pass
 
                 if event.type == pg.MOUSEBUTTONUP:
-                    #self.down = None
-                    pass
+                    self.down = None
             #
             rect = tilesystem.drawTiles()
             rect += simGroup.draw(self.screen)

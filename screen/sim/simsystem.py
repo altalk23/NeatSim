@@ -8,6 +8,7 @@ class SimSystem:
     def __init__(self, group, tilesystem):
         self.group = group
         self.tilesystem = tilesystem
+        self.delta = tilesystem.delta
 
     def generateSims(self, count: int) -> None:
         self.sims = []
@@ -20,6 +21,11 @@ class SimSystem:
             self.sims[i].setRotation(r)
             self.sims[i].add(self.group)
             self.sims[i].draw()
+
+    def deltaChange(self):
+        for sim in self.sims:
+            if self.tilesystem.rect.colliderect(self.delta.delta(sim.baseRect)):
+                sim.update()
 
 
     '''

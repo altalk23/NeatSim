@@ -5,8 +5,9 @@ from screen.tile.tile import Tile
 
 class TileSystem:
 
-    def __init__(self, screen):
+    def __init__(self, screen, delta):
         self.screen = screen
+        self.delta = delta
 
     '''
     Sets the window size of the system
@@ -46,15 +47,16 @@ class TileSystem:
     Draws the tiles to the screen
     '''
     def drawTiles(self) -> list:
-        rect = []
+        rectList = []
         for column in self.tiles:
             for tile in column:
                 if tile.dirty:
-                    rect.append(tile.rect)
-                    pg.draw.rect(self.surface, tile.color, tile.rect)
+                    rect = self.delta.delta(tile.rect.copy())
+                    rectList.append(rect)
+                    pg.draw.rect(self.surface, tile.color, rect)
                     tile.dirty = 0
         self.screen.blit(self.surface, (0, 0))
-        return rect
+        return rectList
 
 
     '''
@@ -69,3 +71,9 @@ class TileSystem:
                     tile.color = (0, randint(111, 143), 0)
                     tile.dirty = 1
         print(self.tiles[0][0])
+
+    def deltaChange(self):
+        for column in self.tiles:
+            for tile in column:
+                if self.rect.colliderect(self.delta.delta(tile.rect)):
+                    tile.dirty = 1
