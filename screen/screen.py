@@ -78,7 +78,9 @@ class Screen:
 
         # Main loop
         while running:
-            print(self.clock.tick(self.framerate))
+            a = self.clock.tick(self.framerate)
+            if a > 36:
+                print(a)
 
             for event in pg.event.get():
                 if event.type == pg.QUIT:
@@ -92,19 +94,14 @@ class Screen:
                         self.down = event.pos
                     elif event.button == 4:
                         delta.zoomOut()
-                        tilesystem.deltaChange()
-                        simsystem.deltaChange()
                     elif event.button == 5:
                         delta.zoomIn()
-                        tilesystem.deltaChange()
-                        simsystem.deltaChange()
+
                     pass
 
                 if event.type == pg.MOUSEMOTION:
                     if self.down is not None:
                         delta.move(event.pos[0] - self.down[0], event.pos[1] - self.down[1])
-                        tilesystem.deltaChange()
-                        simsystem.deltaChange()
                         self.down = event.pos
                     #
                     #    tilesystem.move()
@@ -113,6 +110,11 @@ class Screen:
 
                 if event.type == pg.MOUSEBUTTONUP:
                     self.down = None
+
+            if delta.dirty:
+                delta.dirty = 0
+                tilesystem.deltaChange()
+                simsystem.deltaChange()
             #
             rect = tilesystem.drawTiles()
             rect += simGroup.draw(self.screen)

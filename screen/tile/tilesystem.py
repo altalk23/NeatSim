@@ -51,7 +51,7 @@ class TileSystem:
         for column in self.tiles:
             for tile in column:
                 if tile.dirty:
-                    rect = self.delta.delta(tile.rect.copy())
+                    rect = self.delta.delta(tile.rect)
                     rectList.append(rect)
                     pg.draw.rect(self.surface, tile.color, rect)
                     tile.dirty = 0

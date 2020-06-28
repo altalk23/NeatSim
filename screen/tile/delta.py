@@ -7,6 +7,7 @@ class Delta:
     dy = 0
     dz = 1
     pdz = 1
+    dirty = 0
 
     f = lambda self, x: (x+1)**0.7
 
@@ -34,16 +35,22 @@ class Delta:
 
         self.dx -= self.width * (self.dz - self.pdz) / 2
         self.dy -= self.height * (self.dz - self.pdz) / 2
+        #self.dx = (self.dx) * (self.dz - self.pdz)
+        #self.dy = (self.dy) * (self.dz - self.pdz)
+        print(self.dx, self.dy, "\n")
 
         self.dx = max(min(self.dx, 0), self.width - self.currentWidth)
         self.dy = max(min(self.dy, 0), self.height - self.currentHeight)
 
         self.pdz = self.f(self.zoom)
         #print(self.dz, self.dx, self.dy)
+        self.dirty = 1
 
     def move(self, dx, dy):
         self.dx += dx
         self.dy += dy
+
+        self.dirty = 1
 
         self.dx = max(min(self.dx, 0), self.width - self.currentWidth)
         self.dy = max(min(self.dy, 0), self.height - self.currentHeight)
