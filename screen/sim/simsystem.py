@@ -2,45 +2,28 @@ from random import uniform
 from math import pi
 
 from screen.sim.sim import Sim
-from utilities.position import Position
-from utilities.coordinate import Coordinate
-from utilities.boundingbox import BoundingBox
-from utilities.size import Size
 
 class SimSystem:
 
-    def __init__(self, tilesystem, group):
-        self.tilesystem = tilesystem
+    def __init__(self, group, tilesystem):
         self.group = group
+        self.tilesystem = tilesystem
 
-    def generateSims(self, count: int):
-        self.sims = {}
-        self.positions = {}
+    def generateSims(self, count: int) -> None:
+        self.sims = []
         for i in range(count):
-            self.sims[i] = Sim(self.tilesystem, self, i)
+            x = uniform(0, self.tilesystem.systemWidth)
+            y = uniform(0, self.tilesystem.systemHeight)
+            r = uniform(0, 360)
+            self.sims.append(Sim(self, i))
+            self.sims[i].setPosition(x, y)
+            self.sims[i].setRotation(r)
             self.sims[i].add(self.group)
+            self.sims[i].draw()
 
-            windowSize = self.tilesystem.windowSize.get()
-            position = Position(
-                BoundingBox(
-                    Coordinate(
-                        uniform(0, windowSize[0]),
-                        uniform(0, windowSize[1])
-                    ),
-                    Size(
-                        16,
-                        16,
-                    )
-                ),
-                uniform(0, pi)
-            )
-            self.sims[i].updateScale(position)
-            self.group.change_layer(self.sims[i], 1000)
-            self.positions[i] = position
 
     '''
     Updates the position of all sims
-    '''
     def updateSims(self):
         dz = self.tilesystem.curve(self.tilesystem.dz)
         for sim, position in zip(self.sims.values(), self.positions.values()):
@@ -53,3 +36,16 @@ class SimSystem:
         for sim, position in zip(self.sims.values(), self.positions.values()):
             position.bb.align(dz, self.tilesystem.dx, self.tilesystem.dy)
             sim.updateScale(position)
+
+    def rot(self):
+        for sim, position in zip(self.sims.values(), self.positions.values()):
+            position.angle += 0.1
+            sim.updateRotation(position)
+
+    def selectSim(self, mousePos):
+        for sim, position in zip(self.sims.values(), self.positions.values()):
+            if position.bb.collidingPoint(mousePos):
+                self.selectedSim = sim
+                return 1
+        return 0
+    '''

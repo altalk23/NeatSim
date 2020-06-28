@@ -22,6 +22,14 @@ class BoundingBox:
             self.getSize()
         )
 
+    def getCenter(self):
+        c = self.getCoordinate()
+        s = self.getSize()
+        return (
+            c[0] + s[0]//2,
+            c[1] + s[1]//2
+        )
+
     def getCoordinate(self):
         c = self.coordinate.get()
         c = (c[0] * self.dz + self.dx, c[1] * self.dz + self.dy)
@@ -35,6 +43,18 @@ class BoundingBox:
     def colliding(self, other):
         bb1 = self.get()
         bb2 = other.get()
+        if (
+            bb1[0][0] < bb2[0][0] + bb2[1][0] and
+            bb1[0][0] + bb1[1][0] > bb2[0][0] and
+            bb1[0][1] < bb2[0][1] + bb2[1][1] and
+            bb1[0][1] + bb1[1][1] > bb2[0][1]
+        ):
+            return 1
+        return 0
+
+    def collidingPoint(self, other):
+        bb1 = self.get()
+        bb2 = (other, (0, 0))
         if (
             bb1[0][0] < bb2[0][0] + bb2[1][0] and
             bb1[0][0] + bb1[1][0] > bb2[0][0] and

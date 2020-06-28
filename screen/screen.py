@@ -6,6 +6,7 @@ from screen.tile.tilesystem import TileSystem
 from screen.sim.simsystem import SimSystem
 
 
+
 class Screen:
     down = None
 
@@ -51,29 +52,25 @@ class Screen:
         running = True
 
         # Background
-        background = pg.Surface(self.size.get())
-        background = background.convert()
-        background.fill(Colors.white)
-
+        simSurface = pg.Surface(self.size.get(), pg.SRCALPHA)
+        simSurface = simSurface.convert_alpha()
 
         # Tilesystem
-        tilesystem = TileSystem()
-        if self.size.width >= self.size.height:
-            tilesystem.setSize(Size(self.size.height, self.size.height))
-        else:
-            tilesystem.setSize(Size(self.size.width, self.size.width))
-        tilesystem.generateTiles(Size(32, 32))
-
-        # All sprites
-        allsprites = pg.sprite.LayeredDirty(tilesystem.tiles)
-        allsprites.clear(self.screen, background)
+        tilesystem = TileSystem(self.screen)
+        tilesystem.setSize(self.size.height, self.size.height)
+        tilesystem.generateTiles(100, 100)
 
         # Simsystem
-        simsystem = SimSystem(tilesystem, allsprites)
+        simGroup = pg.sprite.LayeredDirty()
+        simGroup.clear(self.screen, simSurface)
+        simsystem = SimSystem(simGroup, tilesystem)
         simsystem.generateSims(50)
 
+        # Simsystem
+        #simsystem = SimSystem(tilesystem, allsprites)
+        #simsystem.generateSims(50)
 
-
+        #panel.bindSimSystem(simsystem)
 
         # Main loop
         while running:
@@ -83,27 +80,25 @@ class Screen:
                 if event.type == pg.QUIT:
                     running = False
 
-                if event.type == pg.KEYDOWN:
-                    if event.key == pg.K_i:
-                        tilesystem.zoomIn()
-                        simsystem.changeZoom()
-
-                    if event.key == pg.K_o:
-                        tilesystem.zoomOut()
-                        simsystem.changeZoom()
-
                 if event.type == pg.MOUSEBUTTONDOWN:
-                    self.down = event.pos
+                    #if not simsystem.selectSim(event.pos):
+                    #    self.down = event.pos
+                    tilesystem.randomColor()
+                    simGroup.update()
+                    pass
 
                 if event.type == pg.MOUSEMOTION:
-                    if self.down is not None:
-                        tilesystem.move(event.pos[0] - self.down[0], event.pos[1] - self.down[1])
-                        simsystem.updateSims()
-                        self.down = event.pos
+                    #if self.down is not None:
+                    #    tilesystem.move(event.pos[0] - self.down[0], event.pos[1] - self.down[1])
+                    #    simsystem.updateSims()
+                    #    self.down = event.pos
+                    pass
 
                 if event.type == pg.MOUSEBUTTONUP:
-                    self.down = None
-
-            rect = allsprites.draw(self.screen)
+                    #self.down = None
+                    pass
+            #
+            rect = tilesystem.drawTiles()
+            rect += simGroup.draw(self.screen)
             pg.display.update(rect)
         pg.quit()
