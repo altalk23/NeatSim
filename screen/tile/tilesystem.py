@@ -2,6 +2,7 @@ import pygame as pg
 from random import randint
 
 from screen.tile.tile import Tile
+from utilities.colors import Colors
 
 class TileSystem:
 
@@ -46,7 +47,7 @@ class TileSystem:
     '''
     Draws the tiles to the screen
     '''
-    def drawTiles(self) -> list:
+    def drawTiles(self) -> [pg.Rect]:
         rectList = []
         for column in self.tiles:
             for tile in column:
@@ -55,7 +56,7 @@ class TileSystem:
                     rectList.append(rect)
                     pg.draw.rect(self.surface, tile.color, rect)
                     tile.dirty = 0
-        self.screen.blit(self.surface, (0, 0))
+        self.screen.blit(self.surface, (self.rect.x, self.rect.y))
         return rectList
 
 

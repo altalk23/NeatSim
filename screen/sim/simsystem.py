@@ -4,6 +4,8 @@ from math import pi
 from screen.sim.sim import Sim
 
 class SimSystem:
+    selected = None
+    i = 0
 
     def __init__(self, group, tilesystem):
         self.group = group
@@ -20,12 +22,31 @@ class SimSystem:
             self.sims[i].setPosition(x, y)
             self.sims[i].setRotation(r)
             self.sims[i].add(self.group)
-            self.sims[i].draw()
+        self.group.update()
 
+    def move(self):
+        for sim in self.sims:
+            if not self.i % 30:
+                sim.move(0.1, uniform(0, 360))
+            else:
+                sim.move(sim.s, sim.r)
+        self.i += 1
+
+
+    '''
     def deltaChange(self):
         for sim in self.sims:
             if self.tilesystem.rect.colliderect(self.delta.delta(sim.baseRect)):
                 sim.update()
+    '''
+    def selectSim(self, pos):
+        for sim in self.sims:
+            if sim.rect.collidepoint(pos):
+                self.selected = sim
+                return 1
+        self.selected = None
+        return 0
+
 
 
     '''

@@ -5,6 +5,7 @@ from utilities.size import Size
 from screen.tile.tilesystem import TileSystem
 from screen.sim.simsystem import SimSystem
 from screen.tile.delta import Delta
+from screen.panel.panel import Panel
 
 
 
@@ -27,17 +28,19 @@ class Screen:
     '''
     Sets the window size of the screen
     '''
-    def setWindow(self, size: Size):
+    def setWindow(self, width, height):
         # Fullscreen
-        if size is None:
+        if width == 0 and height == 0:
             self.screen = pg.display.set_mode((0, 0), pg.FULLSCREEN)
             info = pg.display.Info()
-            self.size = Size(info.current_w, info.current_h)
+            self.width = info.current_w
+            self.height = info.current_h
 
         # Windowed
         else:
-            self.screen = pg.display.set_mode(size.get())
-            self.size = size
+            self.screen = pg.display.set_mode((width, height))
+            self.width = width
+            self.height = height
 
 
     '''
@@ -52,22 +55,22 @@ class Screen:
     def start(self):
         running = True
 
-        # Delta
-        delta = Delta(self.size.height, self.size.height)
+        surface = pg.Surface((self.width, self.height), pg.SRCALPHA)
+        surface.fill(Colors.darkGray, pg.Rect(self.height, 0, self.width-self.height, self.height))
+        surface = surface.convert_alpha()
+        group = pg.sprite.Group()
+        group.clear(self.screen, surface)
 
-        # Background
-        simSurface = pg.Surface(self.size.get(), pg.SRCALPHA)
-        simSurface = simSurface.convert_alpha()
+        # Delta
+        delta = Delta(self.height, self.height)
 
         # Tilesystem
         tilesystem = TileSystem(self.screen, delta)
-        tilesystem.setSize(self.size.height, self.size.height)
+        tilesystem.setSize(self.height, self.height)
         tilesystem.generateTiles(100, 100)
 
         # Simsystem
-        simGroup = pg.sprite.LayeredDirty()
-        simGroup.clear(self.screen, simSurface)
-        simsystem = SimSystem(simGroup, tilesystem)
+        simsystem = SimSystem(group, tilesystem)
         simsystem.generateSims(50)
 
         # Simsystem
@@ -75,12 +78,17 @@ class Screen:
         #simsystem.generateSims(50)
 
         #panel.bindSimSystem(simsystem)
+        panelSurface = pg.Surface((self.width-self.height, self.height))
+        panelSurface.fill(Colors.darkGray)
+        panel = Panel(tilesystem, simsystem, self)
+        panel.setSize(self.width - self.height, self.height)
 
         # Main loop
         while running:
             a = self.clock.tick(self.framerate)
             if a > 36:
                 print(a)
+
 
             for event in pg.event.get():
                 if event.type == pg.QUIT:
@@ -91,7 +99,10 @@ class Screen:
                     #
                     if event.button == 1:
                         #tilesystem.randomColor()
-                        self.down = event.pos
+                        if simsystem.selectSim(event.pos):
+                            panel.dirty = 1
+                        else:
+                            self.down = event.pos
                     elif event.button == 4:
                         delta.zoomOut()
                     elif event.button == 5:
@@ -114,9 +125,14 @@ class Screen:
             if delta.dirty:
                 delta.dirty = 0
                 tilesystem.deltaChange()
-                simsystem.deltaChange()
+                #simsystem.deltaChange()
             #
             rect = tilesystem.drawTiles()
-            rect += simGroup.draw(self.screen)
-            pg.display.update(rect)
+
+            simsystem.move()
+            group.update()
+            group.draw(self.screen)
+            rect += [sprite.rect for sprite in group.sprites()]
+            self.screen.blit(surface, (0, 0))
+            pg.display.update()
         pg.quit()
